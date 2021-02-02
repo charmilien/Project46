@@ -2,9 +2,10 @@ var bg, bgi;
 var boat, boatImage, boatSound, dashSound;
 var brd1,brd2;
 var obs,obsGroup;
-var score=0;
+var score=0, lifeTime=0;
 var highScore=0;
 var gameState="play";
+var life1,life2,life3, lifes;
 
 function preload()
 {
@@ -16,7 +17,7 @@ function preload()
 
 function setup()
 {
-  createCanvas(displayWidth,displayHeight)
+  createCanvas(windowWidth,windowHeight)
   bg=createSprite(width/2,height/2,width,height)
   bg.addImage(bgi);
   bg.scale=3.5
@@ -25,22 +26,31 @@ function setup()
   boat=createSprite(width/2,height*3/4)
   boat.addImage(boatImage)
   boat.scale=0.10
+  boat.debug=true;
+  //boat.setCollider("circle",0,-270,150)
   brd1=createSprite(width/6*2,height/2,2,height)
   brd2=createSprite(width/6*4,height/2,2,height)
   brd1.visible=false
   brd2.visible=false
   
   obsGroup= new Group();
+  life1=createSprite(width/4*3,30,30,30)
+  life1.shapeColor="red"
+  life2=createSprite(width/4*3+40,30,30,30)
+  life2.shapeColor="red"
+  life3=createSprite(width/4*3+80,30,30,30)
+  life3.shapeColor="red"
+
 }
 
 function draw()
 {
   background(25)
   
-    if(gameState==="play")
+    if(gameState==="play" )
   {    
     boatSound.play();
-
+    
     if(bg.y>height-70) { bg.x=width/2; bg.y=height/2}
     
     score=score + Math.round(getFrameRate()/60)
@@ -69,34 +79,66 @@ function draw()
 
        getObs(); 
 
+    
+    
       if(obsGroup.isTouching(boat))
-         {  boatSound.stop();dashSound.play();  gameState="End"; }
+         {  
+           boatSound.stop();
+           //boat.velocityX=boat.velocityX*-1
+           //boat.velocityY=boat.velocityY*-2
+           for(var i=0; i<obsGroup.length;i++) 
+           {
+           obsGroup.get(i).destroy();
+           dashSound.play(); 
+           }
+           lifeTime++;
+           
+           
+          
+            if(lifeTime===1){life1.visible=false;} 
+           if(lifeTime===2){life2.visible=false;} 
+           if(lifeTime === 3)
+            {
+            life3.visible=false;  
+            gameState="End"
+            } 
+
+            console.log(lifeTime)
+          } 
+        
+        
+       
+            
   }
 
-  drawSprites();
-
-  if (gameState==="End")
-    {
-      bg.velocityY=0;
-      boat.velocityX=0;
-      boat.velocityY=0;
-      obsGroup.setVelocityYEach(0)
-      obsGroup.setLifetimeEach(-1)
-      textSize(30)
-        stroke("black")
-        strokeWeight(5)
-      fill("yellow");
-      text('Press *** R *** to Restart',width/5*2,height/2)
-    }
-  
-  if(keyDown("r") && gameState==="End")
+ 
+    if(keyDown("r") && gameState==="End")
     {
       obsGroup.destroyEach();
       score=0;
+      lifeTime=0
       gameState="play";
-     // bg.velocityY=5;
+      life1.visible=true
+      life2.visible=true
+      life3.visible=true 
+    // bg.velocityY=5;
     }
-  
+
+  drawSprites();
+  if (gameState==="End")
+  {
+    bg.velocityY=0;
+    boat.velocityX=0;
+    boat.velocityY=0;
+    obsGroup.setVelocityYEach(0)
+    obsGroup.setLifetimeEach(-1)
+    textSize(30)
+      stroke("black")
+      strokeWeight(5)
+    fill("yellow");
+    text('Press *** R *** to Restart',width/5*2,height/2)
+
+  }
   strokeWeight(3)
   textSize(20)
   stroke("black")
@@ -119,7 +161,7 @@ function getObs()
       if(num===3){ obs.shapeColor="green"}
       if(num===4){ obs.shapeColor="black"}
       if(num===5){ obs.shapeColor="orange"}
-  
+  obs.debug=true;
   obs.velocityY=5+ score/100;
   obs.lifetime=displayHeight/5;
       obs.depth=boat.depth
